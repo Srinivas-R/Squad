@@ -17,6 +17,24 @@ def compute_acc(score_list, gold, threshold=0.5):
         if lab == gold[key]: correct += 1
     return correct * 100.0 / len(gold)
 
+def compute_classifier_pr_rec(score_list, gold, threshold=0.5):
+    true_positive = 0.0
+    false_positive = 0.0
+    false_negative = 0.0
+    for key, val in score_list.items():
+        lab = 1 if val > threshold else 0
+        if lab == 1 and gold[key] == 1:
+            true_positive += 1
+        elif lab == 1 and gold[key] == 0:
+            false_positive += 1
+        elif lab == 0 and gold[key] == 1:
+            false_negative += 1
+    prec = true_positive/(true_positive + false_positive)
+    rec = true_positive/(true_positive + false_negative)
+    f1 = 2 * prec * rec / (prec + rec) 
+    return prec, rec, f1
+
+
 def gen_name(dir, path, version, suffix='json'):
     fname = '{}_{}.{}'.format(path, version, suffix)
     return os.path.join(dir, fname)

@@ -96,6 +96,7 @@ class BatchGen:
             doc_feature = torch.Tensor(batch_size, doc_len, feature_len).fill_(0)
             query_len = max(len(x['query_tok']) for x in batch)
             query_id = torch.LongTensor(batch_size, query_len).fill_(0)
+            span_many_hot_vec = torch.FloatTensor(batch_size, doc_len).fill_(0)
 
             for i, sample in enumerate(batch):
                 select_len = min(len(sample['doc_tok']), doc_len)
@@ -105,6 +106,7 @@ class BatchGen:
                 if self.is_train:
                     doc_tok = self.__random_select__(doc_tok)
                     query_tok = self.__random_select__(query_tok)
+                    span_many_hot_vec[i][sample['start']:min(sample['end']+1,doc_len)] = 1.0
 
                 doc_id[i, :select_len] = torch.LongTensor(doc_tok[:select_len])
                 doc_tag[i, :select_len] = torch.LongTensor(sample['doc_pos'][:select_len])
@@ -125,6 +127,7 @@ class BatchGen:
             batch_dict['query_tok'] = query_id
             batch_dict['doc_mask'] = doc_mask
             batch_dict['query_mask'] = query_mask
+            batch_dict['span_vec'] = span_many_hot_vec
 
             if self.is_train:
                 start = [sample['start'] for sample in batch]

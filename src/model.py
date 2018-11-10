@@ -19,6 +19,8 @@ from torch.autograd import Variable
 from my_utils.utils import AverageMeter
 from .dreader import DNetwork
 
+import pdb
+
 logger = logging.getLogger(__name__)
 
 class DocReaderModel(object):
@@ -80,20 +82,41 @@ class DocReaderModel(object):
     def update(self, batch):
         self.network.train()
         if self.opt['cuda']:
-            y = Variable(batch['start'].cuda(async=True)), Variable(batch['end'].cuda(async=True))
+            #y = Variable(batch['start'].cuda(async=True)), Variable(batch['end'].cuda(async=True))
+            y = Variable(batch['span_vec'].cuda(async=True))
             if self.opt.get('v2_on', False):
                 label = Variable(batch['label'].cuda(async=True), requires_grad=False)
         else:
-            y = Variable(batch['start']), Variable(batch['end'])
+            #y = Variable(batch['start']), Variable(batch['end'])
+            y = Variable(batch['span_vec'])
             if self.opt.get('v2_on', False):
                 label = Variable(batch['label'], requires_grad=False)
 
-        start, end, pred = self.network(batch)
-        loss = F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
+        #start, end, pred = self.network(batch)
+        scores, pred = self.network(batch)
+        
+        # #original loss fn
+        # loss = F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
+        # if self.opt.get('v2_on', False):
+        #     loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
+
+        # #only training SP on unanswerables
+        # loss = 0.0
+        # if self.opt.get('v2_on', False):
+        #     loss += F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
+        #     if(len(y[0][label==0]) != 0):
+        #         loss += F.cross_entropy(start[label==0], y[0][label==0])
+        #         loss += F.cross_entropy(end[label==0], y[1][label==0])
+        # else:
+        #     loss += F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
+
+        # single relevance/answer score
+        loss = F.binary_cross_entropy(scores, y)
         if self.opt.get('v2_on', False):
             loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
 
-        self.train_loss.update(loss.item(), len(start))
+
+        self.train_loss.update(loss.item(), len(scores))
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.opt['grad_clipping'])
@@ -105,7 +128,7 @@ class DocReaderModel(object):
     def predict(self, batch, top_k=1):
         self.network.eval()
         self.network.drop_emb = False
-        # Transfer trained embedding to evaluation embedding
+        # Transfer trained embedding to evlen(aluation embedding
         if self.eval_embed_transfer:
             self.update_eval_embed()
             self.eval_embed_transfer = False
