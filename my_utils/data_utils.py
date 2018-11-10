@@ -164,3 +164,4 @@ def build_data(data, vocab, vocab_tag, vocab_ner, fout, is_train, thread=16, NLP
             if feat_dict is not None:
                 writer.write('{}\n'.format(json.dumps(feat_dict)))
     logger.info('dropped {} in total {}'.format(dropped_sample, len(data)))
+

@@ -126,4 +126,5 @@ class DNetwork(nn.Module):
             pred_score = F.sigmoid(self.classifier(doc_sum, query_mem, doc_mask))
         
         #return start_scores, end_scores, pred_score
+        #both scores are from [0,1]
         return span_scores, pred_score
