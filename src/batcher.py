@@ -127,13 +127,13 @@ class BatchGen:
             batch_dict['query_tok'] = query_id
             batch_dict['doc_mask'] = doc_mask
             batch_dict['query_mask'] = query_mask
-            batch_dict['span_vec'] = span_many_hot_vec
 
             if self.is_train:
                 start = [sample['start'] for sample in batch]
                 end = [sample['end'] for sample in batch]
                 batch_dict['start'] = torch.LongTensor(start)
                 batch_dict['end'] = torch.LongTensor(end)
+                batch_dict['span_vec'] = span_many_hot_vec
                 if self.with_label:
                     label = [sample['label'] for sample in batch]
                     batch_dict['label'] = torch.FloatTensor(label)
