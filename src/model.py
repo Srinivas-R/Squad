@@ -223,7 +223,6 @@ class DocReaderModel(object):
 
         for i in range(scores.size(0)):
             answer_scores = scores[i] * pos_enc
-            answer_scores = answer_scores * pos_enc
             answer_scores = answer_scores.numpy()
             
             # best_idx = np.argpartition(scores, -top_k, axis=None)[-top_k]
