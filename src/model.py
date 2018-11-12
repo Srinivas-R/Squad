@@ -238,8 +238,10 @@ class DocReaderModel(object):
 
             if self.opt.get('v2_on', False):
                 label_score = float(lab[i])
-                pdb.set_trace()
-                s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
+                try:
+                    s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
+                except IndexError:
+                    pdb.set_trace()
                 answer = text[i][s_offset:e_offset]
                 if s_idx == len(spans[i]) - 1:
                     answer = ''
