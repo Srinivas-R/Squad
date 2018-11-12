@@ -213,7 +213,7 @@ class DocReaderModel(object):
         text = batch['text']
         spans = batch['span']
         predictions = []
-        best_scores = []
+        #best_scores = []
         label_predictions = []
 
         max_len = self.opt['max_len'] or scores.size(1)
@@ -243,17 +243,17 @@ class DocReaderModel(object):
                 if s_idx == len(spans[i]) - 1:
                     answer = ''
                 predictions.append(answer)
-                best_scores.append(best_score)
+                #best_scores.append(best_score)
                 label_predictions.append(label_score)
             else:
                 s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
                 predictions.append(text[i][s_offset:e_offset])
-                best_scores.append(best_score)
+                #best_scores.append(best_score)
         #if self.opt.get('v2_on', False):
         #    return (predictions, best_scores, label_predictions)
         #return (predictions, best_scores)
-        return (predictions, best_scores, label_predictions)
-
+        #return (predictions, best_scores, label_predictions)
+        return (predictions, label_predictions)
 
     def setup_eval_embed(self, eval_embed, padding_idx = 0):
         self.network.lexicon_encoder.eval_embed = nn.Embedding(eval_embed.size(0),
