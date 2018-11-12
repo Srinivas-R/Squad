@@ -221,7 +221,7 @@ class DocReaderModel(object):
         pos_enc = self.position_encoding(doc_len, max_len)
         threshold = 0.5
 
-        for i in range(scores.size[0]):
+        for i in range(scores.size(0)):
             answer_scores = scores[i] * pos_enc
             answer_scores = answer_scores.numpy()
             

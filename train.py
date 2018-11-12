@@ -78,13 +78,13 @@ def main():
 		logger.warning('At epoch {}'.format(epoch))
 		train_data.reset()
 		start = datetime.now()
-		for i, batch in enumerate(train_data):
-			#pdb.set_trace()
-			model.update(batch)
-			if (model.updates) % args.log_per_updates == 0 or i == 0:
-				logger.info('#updates[{0:6}] train loss[{1:.5f}] remaining[{2}]'.format(
-					model.updates, model.train_loss.avg,
-					str((datetime.now() - start) / (i + 1) * (len(train_data) - i - 1)).split('.')[0]))
+		# for i, batch in enumerate(train_data):
+		# 	#pdb.set_trace()
+		# 	model.update(batch)
+		# 	if (model.updates) % args.log_per_updates == 0 or i == 0:
+		# 		logger.info('#updates[{0:6}] train loss[{1:.5f}] remaining[{2}]'.format(
+		# 			model.updates, model.train_loss.avg,
+		# 			str((datetime.now() - start) / (i + 1) * (len(train_data) - i - 1)).split('.')[0]))
 		# dev eval
 		results, labels = predict_squad(model, dev_data, v2_on=args.v2_on)
 		if args.v2_on:
