@@ -221,7 +221,7 @@ class DocReaderModel(object):
         pos_enc = self.position_encoding(doc_len, max_len)
         threshold = 0.5
 
-        for i in range(scores.size(0)):
+        for i in range(scores.size[0]):
             answer_scores = scores[i] * pos_enc
             answer_scores = answer_scores.numpy()
             
@@ -238,6 +238,7 @@ class DocReaderModel(object):
 
             if self.opt.get('v2_on', False):
                 label_score = float(lab[i])
+                pdb.set_trace()
                 s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
                 answer = text[i][s_offset:e_offset]
                 if s_idx == len(spans[i]) - 1:
