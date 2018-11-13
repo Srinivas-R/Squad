@@ -9,6 +9,7 @@ from collections import Counter
 from my_utils.tokenizer import Vocabulary, reform_text
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+import pdb
 
 def compute_acc(score_list, gold, threshold=0.5):
     correct = 0
@@ -45,6 +46,7 @@ def predict_squad(model, data, v2_on=False):
     label_predictions = {}
     for batch in data:
         #phrase, spans, scores = model.predict(batch)
+        pdb.set_trace()
         phrase, scores = model.predict(batch)
         uids = batch['uids']
         for uid, pred in zip(uids, phrase):
