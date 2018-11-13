@@ -13,3 +13,4 @@ nohup*
 *.pyproj
 *.sln
 launch_docker
+default.pem
