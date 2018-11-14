@@ -84,7 +84,7 @@ def model_config(parser):
     parser.add_argument('--query_sum_norm_on', action='store_true')
 
     parser.add_argument('--max_len', type=int, default=5)
-    parser.add_argument('--decoder_num_turn', type=int, default=0)
+    parser.add_argument('--decoder_num_turn', type=int, default=1)
     parser.add_argument('--decoder_mem_type', type=int, default=1)
     parser.add_argument('--decoder_mem_drop_p', type=float, default=0.1)
     parser.add_argument('--decoder_opt', type=int, default=0)

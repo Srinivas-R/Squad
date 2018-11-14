@@ -122,6 +122,6 @@ class SAN(nn.Module):
     #     return scores
 
     def forward(self, x, h0, x_mask):
-        start_scores = self.attn_b(x, h0, x_mask)
-        end_scores = self.attn_e(x, h0, x_mask)
+        start_scores = F.softmax(self.attn_b(x, h0, x_mask), 1)
+        end_scores = F.softmax(self.attn_e(x, h0, x_mask),1)
         return start_scores, end_scores

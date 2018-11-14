@@ -117,14 +117,14 @@ class DNetwork(nn.Module):
             doc_mem = doc_mem_hiddens
         query_mem = self.query_sum_attn(query_mem_hiddens, query_mask)
         
-        #start_scores, end_scores = self.decoder(doc_mem, query_mem, doc_mask)
-        span_scores = self.decoder(doc_mem, query_mem, doc_mask)
+        start_scores, end_scores = self.decoder(doc_mem, query_mem, doc_mask)
+        # span_scores = self.decoder(doc_mem, query_mem, doc_mask)
         
         pred_score = None
         if self.classifier is not None:
             doc_sum = self.doc_sum_attn(doc_mem, doc_mask)
             pred_score = F.sigmoid(self.classifier(doc_sum, query_mem, doc_mask))
         
-        #return start_scores, end_scores, pred_score
+        return start_scores, end_scores, pred_score
         #both scores are from [0,1]
-        return span_scores, pred_score
+        # return span_scores, pred_score
