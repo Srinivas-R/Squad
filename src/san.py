@@ -33,9 +33,9 @@ class SAN(nn.Module):
     def __init__(self, x_size, h_size, opt={}, prefix='answer', dropout=None):
         super(SAN, self).__init__()
         self.prefix = prefix
-        # self.attn_b  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
-        # self.attn_e  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
-        self.attn = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        self.attn_b  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        self.attn_e  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        # self.attn = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
         self.rnn_type = '{}{}'.format(opt.get('{}_rnn_type'.format(prefix), 'gru').upper(), 'Cell')
         self.rnn =getattr(nn, self.rnn_type)(x_size, h_size)
         self.num_turn = opt.get('{}_num_turn'.format(prefix), 5)
@@ -117,6 +117,11 @@ class SAN(nn.Module):
     #     return start_scores, end_scores
 
 
+    # def forward(self, x, h0, x_mask):
+    #     scores = F.sigmoid(self.attn(x, h0, x_mask))
+    #     return scores
+
     def forward(self, x, h0, x_mask):
-        scores = F.sigmoid(self.attn(x, h0, x_mask))
-        return scores
+        start_scores = self.attn_b(x, h0, x_mask)
+        end_scores = self.attn_e(x, h0, x_mask)
+        return start_scores, end_scores

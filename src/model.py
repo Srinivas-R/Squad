@@ -80,62 +80,25 @@ class DocReaderModel(object):
         self.total_param = sum([p.nelement() for p in parameters]) - wvec_size
 
     # Original function
-    # def update(self, batch):
-    #     self.network.train()
-    #     if self.opt['cuda']:
-    #         y = Variable(batch['start'].cuda(async=True)), Variable(batch['end'].cuda(async=True))
-    #         if self.opt.get('v2_on', False):
-    #             label = Variable(batch['label'].cuda(async=True), requires_grad=False)
-    #     else:
-    #         y = Variable(batch['start']), Variable(batch['end'])
-    #         if self.opt.get('v2_on', False):
-    #             label = Variable(batch['label'], requires_grad=False)
-
-    #     start, end, pred = self.network(batch)
-        
-    #     #original loss fn
-    #     loss = F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
-    #     if self.opt.get('v2_on', False):
-    #         loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
-
-    #     self.train_loss.update(loss.item(), len(start))
-    #     self.optimizer.zero_grad()
-    #     loss.backward()
-    #     torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.opt['grad_clipping'])
-    #     self.optimizer.step()
-    #     self.updates += 1
-    #     self.reset_embeddings()
-    #     self.eval_embed_transfer = True
-
     def update(self, batch):
         self.network.train()
         if self.opt['cuda']:
-            y = Variable(batch['span_vec'].cuda(async=True))
+            y = Variable(batch['start'].cuda(async=True)), Variable(batch['end'].cuda(async=True))
             if self.opt.get('v2_on', False):
                 label = Variable(batch['label'].cuda(async=True), requires_grad=False)
         else:
-            y = Variable(batch['span_vec'])
+            y = Variable(batch['start']), Variable(batch['end'])
             if self.opt.get('v2_on', False):
                 label = Variable(batch['label'], requires_grad=False)
 
-        scores, pred = self.network(batch)
-
-        # #only training SP on unanswerables
-        # loss = 0.0
-        # if self.opt.get('v2_on', False):
-        #     loss += F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
-        #     if(len(y[0][label==0]) != 0):
-        #         loss += F.cross_entropy(start[label==0], y[0][label==0])
-        #         loss += F.cross_entropy(end[label==0], y[1][label==0])
-        # else:
-        #     loss += F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
-
-        # single relevance/answer score
-        loss = F.binary_cross_entropy(scores, y)
+        start, end, pred = self.network(batch)
+        
+        #original loss fn
+        loss = F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
         if self.opt.get('v2_on', False):
             loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
 
-        self.train_loss.update(loss.item(), len(scores))
+        self.train_loss.update(loss.item(), len(start))
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.opt['grad_clipping'])
@@ -144,68 +107,56 @@ class DocReaderModel(object):
         self.reset_embeddings()
         self.eval_embed_transfer = True
 
-    # Original function
-    # def predict(self, batch, top_k=1):
-    #     self.network.eval()
-    #     self.network.drop_emb = False
-    #     # Transfer trained embedding to evlen(aluation embedding
-    #     if self.eval_embed_transfer:
-    #         self.update_eval_embed()
-    #         self.eval_embed_transfer = False
-    #     start, end, lab = self.network(batch)
-    #     start = F.softmax(start, 1)
-    #     end = F.softmax(end, 1)
-    #     start = start.data.cpu()
-    #     end = end.data.cpu()
-    #     scores = scores.data.cpu()
-    #     if lab is not None:
-    #         lab = lab.data.cpu()
-
-    #     text = batch['text']
-    #     spans = batch['span']
-    #     predictions = []
-    #     best_scores = []
-    #     label_predictions = []
-
-    #     max_len = self.opt['max_len'] or start.size(1)
-    #     doc_len = start.size(1)
-    #     pos_enc = self.position_encoding(doc_len, max_len)
-    #     for i in range(start.size(0)):
-    #         scores = torch.ger(start[i], end[i])
-    #         scores = scores * pos_enc
-    #         scores.triu_()
-    #         scores = scores.numpy()
-    #         best_idx = np.argpartition(scores, -top_k, axis=None)[-top_k]
-    #         best_score = np.partition(scores, -top_k, axis=None)[-top_k]
-    #         s_idx, e_idx = np.unravel_index(best_idx, scores.shape)
+    # def update(self, batch):
+    #     self.network.train()
+    #     if self.opt['cuda']:
+    #         y = Variable(batch['span_vec'].cuda(async=True))
     #         if self.opt.get('v2_on', False):
-    #             label_score = float(lab[i])
-    #             s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
-    #             answer = text[i][s_offset:e_offset]
-    #             if s_idx == len(spans[i]) - 1:
-    #                 answer = ''
-    #             predictions.append(answer)
-    #             best_scores.append(best_score)
-    #             label_predictions.append(label_score)
-    #         else:
-    #             s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
-    #             predictions.append(text[i][s_offset:e_offset])
-    #             best_scores.append(best_score)
-    #     #if self.opt.get('v2_on', False):
-    #     #    return (predictions, best_scores, label_predictions)
-    #     #return (predictions, best_scores)
-    #     return (predictions, best_scores, label_predictions)
+    #             label = Variable(batch['label'].cuda(async=True), requires_grad=False)
+    #     else:
+    #         y = Variable(batch['span_vec'])
+    #         if self.opt.get('v2_on', False):
+    #             label = Variable(batch['label'], requires_grad=False)
 
+    #     scores, pred = self.network(batch)
+
+    #     # #only training SP on unanswerables
+    #     # loss = 0.0
+    #     # if self.opt.get('v2_on', False):
+    #     #     loss += F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
+    #     #     if(len(y[0][label==0]) != 0):
+    #     #         loss += F.cross_entropy(start[label==0], y[0][label==0])
+    #     #         loss += F.cross_entropy(end[label==0], y[1][label==0])
+    #     # else:
+    #     #     loss += F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
+
+    #     # single relevance/answer score
+    #     loss = F.binary_cross_entropy(scores, y)
+    #     if self.opt.get('v2_on', False):
+    #         loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
+
+    #     self.train_loss.update(loss.item(), len(scores))
+    #     self.optimizer.zero_grad()
+    #     loss.backward()
+    #     torch.nn.utils.clip_grad_norm_(self.network.parameters(), self.opt['grad_clipping'])
+    #     self.optimizer.step()
+    #     self.updates += 1
+    #     self.reset_embeddings()
+    #     self.eval_embed_transfer = True
+
+    # Original function
     def predict(self, batch, top_k=1):
-        if top_k != 1:
-            raise NotImplementedError()
         self.network.eval()
         self.network.drop_emb = False
         # Transfer trained embedding to evlen(aluation embedding
         if self.eval_embed_transfer:
             self.update_eval_embed()
             self.eval_embed_transfer = False
-        scores, lab = self.network(batch)
+        start, end, lab = self.network(batch)
+        start = F.softmax(start, 1)
+        end = F.softmax(end, 1)
+        start = start.data.cpu()
+        end = end.data.cpu()
         scores = scores.data.cpu()
         if lab is not None:
             lab = lab.data.cpu()
@@ -213,29 +164,21 @@ class DocReaderModel(object):
         text = batch['text']
         spans = batch['span']
         predictions = []
-        #best_scores = []
+        best_scores = []
         label_predictions = []
 
-        max_len = self.opt['max_len'] or scores.size(1)
-        doc_len = scores.size(1)
-        #pos_enc = self.position_encoding(doc_len, max_len)
-        threshold = 0.5
-        pdb.set_trace()
-        for i in range(scores.size(0)):
-            answer_scores = scores[i]
-            answer_scores = answer_scores.numpy()
-            
-            # best_idx = np.argpartition(scores, -top_k, axis=None)[-top_k]
-            # best_score = np.partition(scores, -top_k, axis=None)[-top_k]
-            # s_idx, e_idx = np.unravel_index(best_idx, scores.shape)
-
-            answer_idx = np.where(answer_scores > threshold)[0]
-            if len(answer_idx) == 0:
-                s_idx = e_idx = len(spans[i]) - 1
-            else:
-                s_idx = answer_idx.min()
-                e_idx = answer_idx.max()
-
+        max_len = self.opt['max_len'] or start.size(1)
+        doc_len = start.size(1)
+        pos_enc = self.position_encoding(doc_len, max_len)
+        for i in range(start.size(0)):
+            pdb.set_trace()
+            scores = torch.ger(start[i], end[i])
+            scores = scores * pos_enc
+            scores.triu_()
+            scores = scores.numpy()
+            best_idx = np.argpartition(scores, -top_k, axis=None)[-top_k]
+            best_score = np.partition(scores, -top_k, axis=None)[-top_k]
+            s_idx, e_idx = np.unravel_index(best_idx, scores.shape)
             if self.opt.get('v2_on', False):
                 label_score = float(lab[i])
                 s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
@@ -243,17 +186,64 @@ class DocReaderModel(object):
                 if s_idx == len(spans[i]) - 1:
                     answer = ''
                 predictions.append(answer)
-                #best_scores.append(best_score)
+                best_scores.append(best_score)
                 label_predictions.append(label_score)
             else:
                 s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
                 predictions.append(text[i][s_offset:e_offset])
-                #best_scores.append(best_score)
+                best_scores.append(best_score)
         #if self.opt.get('v2_on', False):
         #    return (predictions, best_scores, label_predictions)
         #return (predictions, best_scores)
-        #return (predictions, best_scores, label_predictions)
-        return (predictions, label_predictions)
+        return (predictions, best_scores, label_predictions)
+
+    # def predict(self, batch, top_k=1):
+    #     if top_k != 1:
+    #         raise NotImplementedError()
+    #     self.network.eval()
+    #     self.network.drop_emb = False
+    #     # Transfer trained embedding to evlen(aluation embedding
+    #     if self.eval_embed_transfer:
+    #         self.update_eval_embed()
+    #         self.eval_embed_transfer = False
+    #     scores, lab = self.network(batch)
+    #     scores = scores.data.cpu()
+    #     if lab is not None:
+    #         lab = lab.data.cpu()
+
+    #     text = batch['text']
+    #     spans = batch['span']
+    #     predictions = []
+    #     #best_scores = []
+    #     label_predictions = []
+
+    #     max_len = self.opt['max_len'] or scores.size(1)
+    #     doc_len = scores.size(1)
+    #     #pos_enc = self.position_encoding(doc_len, max_len)
+    #     threshold = 0.5
+    #     pdb.set_trace()
+    #     for i in range(scores.size(0)):
+    #         answer_scores = scores[i]
+    #         answer_scores = answer_scores.numpy()
+    #         answer_idx = np.where(answer_scores > threshold)[0]
+    #         if len(answer_idx) == 0:
+    #             s_idx = e_idx = len(spans[i]) - 1
+    #         else:
+    #             s_idx = answer_idx.min()
+    #             e_idx = answer_idx.max()
+
+    #         if self.opt.get('v2_on', False):
+    #             label_score = float(lab[i])
+    #             s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
+    #             answer = text[i][s_offset:e_offset]
+    #             if s_idx == len(spans[i]) - 1:
+    #                 answer = ''
+    #             predictions.append(answer)
+    #             label_predictions.append(label_score)
+    #         else:
+    #             s_offset, e_offset = spans[i][s_idx][0], spans[i][e_idx][1]
+    #             predictions.append(text[i][s_offset:e_offset])
+    #     return (predictions, label_predictions)
 
     def setup_eval_embed(self, eval_embed, padding_idx = 0):
         self.network.lexicon_encoder.eval_embed = nn.Embedding(eval_embed.size(0),
