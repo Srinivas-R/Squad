@@ -171,7 +171,7 @@ class DocReaderModel(object):
         doc_len = start.size(1)
         pos_enc = self.position_encoding(doc_len, max_len)
         for i in range(start.size(0)):
-            pdb.set_trace()
+            #pdb.set_trace()
             scores = torch.ger(start[i], end[i])
             scores = scores * pos_enc
             scores.triu_()
