@@ -17,7 +17,7 @@ from functools import wraps
 from src.common import activation
 from src.similarity import FlatSimilarityWrapper
 from src.dropout_wrapper import DropoutWrapper
-
+import pdb
 SMALL_POS_NUM=1.0e-30
 
 def generate_mask(new_data, dropout_p=0.0, is_training=False):
@@ -33,9 +33,9 @@ class SAN(nn.Module):
     def __init__(self, x_size, h_size, opt={}, prefix='answer', dropout=None):
         super(SAN, self).__init__()
         self.prefix = prefix
-        self.attn_b  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
-        self.attn_e  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
-        # self.attn = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        # self.attn_b  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        # self.attn_e  = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
+        self.attn = FlatSimilarityWrapper(x_size, h_size, prefix, opt, dropout)
         self.rnn_type = '{}{}'.format(opt.get('{}_rnn_type'.format(prefix), 'gru').upper(), 'Cell')
         self.rnn =getattr(nn, self.rnn_type)(x_size, h_size)
         self.num_turn = opt.get('{}_num_turn'.format(prefix), 5)
@@ -54,7 +54,7 @@ class SAN(nn.Module):
         else:
             self.dropout = dropout
 
-    # Original forward function
+    # #Original forward function
     # def forward(self, x, h0, x_mask):
     #     start_scores_list = []
     #     end_scores_list = []
@@ -116,12 +116,12 @@ class SAN(nn.Module):
 
     #     return start_scores, end_scores
 
+    #New forward function
+    def forward(self, x, h0, x_mask):
+        scores = F.sigmoid(self.attn(x, h0, x_mask))
+        return scores
 
     # def forward(self, x, h0, x_mask):
-    #     scores = F.sigmoid(self.attn(x, h0, x_mask))
-    #     return scores
-
-    def forward(self, x, h0, x_mask):
-        start_scores = F.softmax(self.attn_b(x, h0, x_mask), 1)
-        end_scores = F.softmax(self.attn_e(x, h0, x_mask),1)
-        return start_scores, end_scores
+    #     start_scores = self.attn_b(x, h0, x_mask)
+    #     end_scores = self.attn_e(x, h0, x_mask)
+    #     return start_scores, end_scores
