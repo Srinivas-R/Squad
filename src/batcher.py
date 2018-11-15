@@ -106,7 +106,8 @@ class BatchGen:
                 if self.is_train:
                     doc_tok = self.__random_select__(doc_tok)
                     query_tok = self.__random_select__(query_tok)
-                    span_many_hot_vec[i][sample['start']:min(sample['end']+1,doc_len)] = 1.0
+                    if sample['start'] != doc_len - 1:
+                        span_many_hot_vec[i][sample['start']:min(sample['end']+1,doc_len)] = 1.0
 
                 doc_id[i, :select_len] = torch.LongTensor(doc_tok[:select_len])
                 doc_tag[i, :select_len] = torch.LongTensor(sample['doc_pos'][:select_len])

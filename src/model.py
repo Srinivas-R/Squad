@@ -131,7 +131,6 @@ class DocReaderModel(object):
         #     loss += F.cross_entropy(start, y[0]) + F.cross_entropy(end, y[1])
 
         # single relevance/answer score
-        pdb.set_trace()
         loss = F.binary_cross_entropy(scores, y)
         if self.opt.get('v2_on', False):
             loss = loss + F.binary_cross_entropy(pred, torch.unsqueeze(label, 1)) * self.opt.get('classifier_gamma', 1)
@@ -221,7 +220,6 @@ class DocReaderModel(object):
         doc_len = scores.size(1)
         #pos_enc = self.position_encoding(doc_len, max_len)
         threshold = 0.5
-        pdb.set_trace()
         for i in range(scores.size(0)):
             answer_scores = scores[i]
             answer_scores = answer_scores.numpy()
