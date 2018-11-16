@@ -88,7 +88,7 @@ def main():
 		# dev eval
 		results, labels = predict_squad(model, dev_data, v2_on=args.v2_on)
 		if args.v2_on:
-			metric = evaluate_v2(dev_gold, results, labels, na_prob_thresh=args.classifier_threshold)
+			metric = evaluate_v2(dev_gold, results, na_prob_thresh=args.classifier_threshold)
 			em, f1 = metric['exact'], metric['f1']
 			acc = compute_acc(labels, dev_labels)
 			cls_pr, cls_rec, cls_f1 = compute_classifier_pr_rec(labels, dev_labels)
